@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Form, Button } from "react-bootstrap"
-import { author } from '../../fbConfig'
+import { author ,db} from '../../fbConfig'
 import {signInWithEmailAndPassword} from "firebase/auth"
 import {useNavigate} from "react-router-dom"
+import { ref ,get} from 'firebase/database'
 const Login = () => {
     const navigate=useNavigate()
     const [loginDetails, setloginDetails] = useState({
@@ -16,9 +17,34 @@ const Login = () => {
         const {email,password}=loginDetails;
         e.preventDefault()
         try {
-await signInWithEmailAndPassword(author,email,password)
+const userCred=await signInWithEmailAndPassword(author,email,password)
+// const 
+console.log(userCred)
+const loggediNpetrson=userCred.user.displayName;
+
+const adminRef=ref(db,`admins/${loggediNpetrson}`)
+const userRef=ref(db,`users/${loggediNpetrson}`)
+
+const adminData=await get(adminRef)
+const userData=await get(userRef)
+console.log(adminData,"admin data")
+console.log(userData,"user data")
+// const adminRef=ref(db,`admins/${name}`)
+
+if (adminData.exists()) {
+    
+   
+    navigate("/dashboard", { state: { personData:adminData.val(), role: "admin" } });
+  } else if (userData.exists()) {
+    
+  
+    navigate("/dashboard", { state: { personData: userData.val(), role: "user" } });
+  } else {
+    alert("No signed-up user found");
+  }
+  
 alert("loggedin successfully!!!")
-navigate("/dashboard")
+// navigate("/dashboard",)
         }
         catch (err) {
             console.log(err)
